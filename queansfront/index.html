@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+   <head>
+      <meta charset="utf-8">
+      <meta http-equiv="X-UA-Compatible" content="IE=edge">
+      <meta name="viewport" content="width=device-width, initial-scale=1">
+      <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+      <title>Front End</title>
+      <!-- Bootstrap -->
+      <link href="bootstrap/css/bootstrap.min.css" rel="stylesheet">
+      <link href="css/style.css" rel="stylesheet">
+      <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+      <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+      <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+      <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+      <![endif]-->
+
+
+   </head>
+   <body>
+      <div class="container">
+         <div class="full-box">
+            <div class="header">
+               <div class="row">
+                  <div class="col-sm-12">
+                     <h2>add new call</h2>
+                  </div>
+               </div>
+            </div>
+            <div class="content addqueansdiv">
+               
+            </div>
+            <div class="footer">
+               <button id="submit" name="button" class="btn btn-primary" onclick="quesans.create.save();">SAVE</button>
+               <button id="cancel" name="cancel" class="btn btn-default" onclick="quesans.create.cancel();">Cancel</button>
+               <button id="addnewquestion" name="addnewquestion" class="btn btn-default pull-right" onclick="quesans.create.ques()" >+Add New Question</button>
+            </div>
+         </div>
+      </div>
+
+      <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+      <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+      <!-- Include all compiled plugins (below), or include individual files as needed -->
+      <script src="bootstrap/js/bootstrap.min.js"></script>
+
+      <script type="text/javascript">
+
+         var questioncnt = 1;
+         var quesansarr = [];
+         var APP_URL = "http://quesans.dev/api/queans";
+         quesans = function(window) {
+
+            return {
+
+               create : {
+
+                  ques  : function(flag){
+
+                        var html = '<div class="quesrow">\
+                                       <div class="row">\
+                                          <div class="col-sm-1">';
+
+                        if(flag === undefined){
+                           html += '<span class="spancounter">'+questioncnt+'</span>'
+                        }
+                                             
+                        html +=  '</div>\
+                                          <div class="col-sm-6">\
+                                             <input type="text" class="form-control" name="question" />\
+                                          </div>\
+                                          <div class="col-sm-4">\
+                                             <select class="form-control" name="question_type" onchange="quesans.create.ans(this,'+questioncnt+')">\
+                                                <option>--Select--</option>\
+                                                <option value="multi-line text">Multi-line text</option>\
+                                                <option value="single choice">Single choice</option>\
+                                                <option value="multiple choice">Multiple choice</option>\
+                                             </select>\
+                                          </div>\
+                                       </div>\
+                                       <div class="innerquesrow">\
+                                       </div>\
+                                    </div>';
+
+                        if(flag === undefined){
+
+                           $(".addqueansdiv").append(html);
+
+                        } else {
+                           console.log($(flag).closest('.row').attr('class'));
+                           $(flag).closest('.row').next('.innerquesrow').append(html);
+                        } 
+
+                        if(flag === undefined){
+                           questioncnt++;
+                        }
+                  },
+                  ans : function(obj,questioncnt){
+
+                     var html = '';
+
+                     switch(obj.value){
+
+                        case 'multi-line text':
+
+                           html += '<div class="row answer">\
+                                       <div class="col-sm-1">\
+                                       </div>\
+                                       <div class="col-sm-10">\
+                                          <textarea  class="form-control" name="answer"></textarea>\
+                                       </div>\
+                                    </div>';
+
+                        break;
+                        case 'single choice':
+
+                           var html = '<div class="quesrow">';
+                           for(var i=0;i<2;i++){
+
+                              html += '<div class="row answer">\
+                                             <div class="col-sm-1">\
+                                             </div>\
+                                             <div class="col-sm-6">\
+                                                <input type="text" name="answer" class="form-control"/>\
+                                             </div>\
+                                             <div class="col-sm-4">\
+                                                <a href="javascript:void(0)" onclick="quesans.create.ques(this)" >+ Add Sub Question</a>\
+                                             </div>\
+                                       </div>\
+                                       <div class="innerquesrow">\
+                                       </div>';
+
+                           }
+                           html += '</div>';
+
+                           
+
+                        break;
+                        case 'multiple choice':
+
+                           var html = '<div class="quesrow">';
+                           for(var i=0;i<5;i++){
+                              
+                              html += '<div class="row answer">\
+                                          <div class="form-group" >\
+                                             <div class="col-sm-1">\
+                                             </div>\
+                                             <div class="col-sm-6">\
+                                                <input type="text" class="form-control" name="answer" />\
+                                             </div>\
+                                             <div class="col-sm-4">\
+                                                <a href="javascript:void(0)" onclick="quesans.create.ques(this)" >+ Add Sub Question</a>\
+                                             </div>\
+                                          </div>\
+                                       </div>\
+                                       <div class="innerquesrow">\
+                                       </div>';
+                           }
+                           html += '</div>';                           
+                           
+                        break;
+                     }
+
+                     $(obj).closest('.quesrow').find('.innerquesrow').html(html);
+
+                  },
+                  save : function(){
+
+                     $('.addqueansdiv > .quesrow').each(function (index, value) { 
+                           
+                        var rowquestion = $(this).find(" > .row");
+
+                        var question = rowquestion.find("input[name='question']").val(); 
+                        var questiontype = rowquestion.find("input[name='question_type']").val();
+
+                        var rowanswer = rowquestion.next('.innerquesrow').find('.quesrow').find('.row');
+                        var answera = [];
+                        $(rowquestion.next('.innerquesrow').find('> .quesrow > .row.answer')).each(function (indexans, valueans) {
+
+                           var answer = $(this).find("input[name='answer']").val();
+                           
+                           var rownextq = $(this).next('.innerquesrow').find('.quesrow');
+                           
+                           var objanswer = {
+                                 answer:answer
+                           }
+                           
+                           if(rownextq.length > 0){
+                              
+                              var newobjanswer = quesans.create.saverep(rownextq,objanswer,answer);
+                              
+
+                              objanswer[answer] = {
+                                 newobjanswer
+                              }
+
+                           }
+                           answera.push(objanswer);
+                        });
+                        
+                        var questiond = {
+                           question : question,
+                           questiontype : questiontype,
+                           answer : answera
+                        } 
+                        quesansarr.push(questiond);
+
+
+                     });
+
+                    var datatosend = JSON.stringify(quesansarr);
+
+                    console.log(quesansarr.length);
+                    console.log(quesansarr);
+                    if(quesansarr.length > 0){
+
+                        $.ajax({
+                            url : APP_URL,
+                            type: 'POST',
+                            data: {
+                                'questionanswer' : datatosend
+                            },
+                            success : function(data){
+                                alert('saved');
+                            },
+                            error : function(xhrresponse){
+                                    
+                                alert('somehing went wrong');
+                            }
+                        });
+
+                    }else {
+                        alert('nothing to save');
+                    }
+
+                  },
+                  saverep : function(rowobj,objanswerp,answerpassp){
+
+                     var rowquestion = rowobj.find(" > .row");
+
+                     var question = rowquestion.find("input[name='question']").val(); 
+                     var questiontype = rowquestion.find("input[name='question_type']").val();
+
+                     var rowanswer = rowquestion.next('.innerquesrow').find('.quesrow').find('.row');
+                     var answera = []
+                     $(rowquestion.next('.innerquesrow').find('> .quesrow > .row.answer')).each(function (indexans, valueans) {
+
+                           var answer = $(this).find("input[name='answer']").val();
+                           
+                           var objanswer = {
+                              answer:answer
+                           };
+
+                           var rownextq = $(this).next('.innerquesrow').find('> .quesrow');
+
+                           if(rownextq.length > 0){
+                              //objanswer = quesans.create.saverep(rownextq,objanswer,answer);
+
+                              var newobjanswer = quesans.create.saverep(rownextq,objanswer,answer);
+                              
+
+                              objanswer[answer] = {
+                                 newobjanswer
+                              }
+                           } 
+
+                           answera.push(objanswer);   
+                     });
+                     return objanswerp[answerpassp] = {
+                        question : question,
+                        questiontype : questiontype,
+                        answer : answera
+                     }
+                     
+                  },
+                  cancel : function(){
+                        questioncnt = 1;
+                        $(".content.addqueansdiv").html('');                    
+                  }
+               }
+
+            }
+
+         }(window);
+      </script>
+   </body>
+</html>
+
